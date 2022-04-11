@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="lib/awsm.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="scripts.js"></script>
+    <script src="lib/vue.js"></script>
+    <title>Каталог</title>
+</head>
+<body>
+    <div id="app" class="content">
+
+      <div class="menu">
+        <a href="">← назад</a>
+        <h1>Shopping Cart</h1><br>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <td>Изображение</td>
+            <td>Наименование позиции</td>
+            <td>Количество</td>
+            <td>Стоимость</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in cart.items">
+            <td><img class="small_preview_img" :src="item.imageURL"></td>
+            <td>{{item.name}}</td>
+            <td>
+              <button v-on:click="itemChangeCountButtonClick(item.id, item.count-1)">-</button>
+              {{item.count}}
+              <button v-on:click="itemChangeCountButtonClick(item.id, item.count+1)">+</button>
+            </td>
+            <td>{{item.price}} ₽</td>
+            <td><button v-on:click="itemDeleteButtonClick(item.id)">🗑️</button></td>
+          </tr>
+          <tr>
+            <td>
+              Общий итог:
+            </td>
+            <td>{{cart.totalPrice}} ₽</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+    <script type="text/javascript">
+      let app = new Vue({
+        el: '#app',
+        data: {
+          cart: {
+            id: 0,
+            parent: 0,
+            name: "...",
+            items: [
+            ]
+          }
+        },
+        methods: {
+          itemDeleteButtonClick: function(itemId) {
+            
+              if (!confirm("Are you sure want ti remove this item?")) return;
+
+              var item = app.cart.items.find(item => item.id === itemId);
+              var index = app.cart.items.indexOf(item);
+              if (index !== -1) { // remove element from array
+                app.cart.items.splice(index, 1);
+              }
+
+              deleteCartItem(itemId, true);
+          },
+          itemChangeCountButtonClick: function(itemId, newCount) {
+            
+              if(newCount <= 0) { // количество = 0, сопостовимо с удалением
+                this.itemDeleteButtonClick(itemId);
+                return;
+              }
+
+              var item = app.cart.items.find(item => item.id === itemId);
+
+              if(item.count > newCount) {
+                deleteCartItem(itemId);
+              } else if(item.count < newCount) {
+                addCartItem(itemId);
+              }
+
+              item.count = newCount;
+          },
+        }
+      });
+
+      let id = getParam("category");
+      if (id == null)
+        id = 0;
+        getCart().then((val) => {
+        app.cart = val;
+      });
+    </script>
+</body>
+</html>
