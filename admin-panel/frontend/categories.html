@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/lib/awsm.min.css">
+    <link rel="stylesheet" href="/admin/style.css">
+    <script src="/admin/lib/vue.js"></script>
+    <script src="/admin/scripts.js"></script>
+    <title>Админка</title>
+</head>
+<body>
+    <header>
+        <h1>Админ панель</h1><br>
+        <a href="/admin/items.html"><button>Управление товарами</button></a>
+        <a href="/admin/categories.html"><button>Управление категориями</button></a>
+    </header>
+
+    <div id="app" class="content">
+        <a href="/admin/category-form.html" class="right"><button>Добавить категорию</button></a>
+        <br/>
+        <span v-if="previous != null">
+          <button v-on:click="update(previous.parent)"><</button>
+          Подкатегории {{previous.name}}
+        </span>
+        <br/>
+        <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Родительская категория</th>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                
+              </tr>
+              <tr v-for="category in categories">
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.parent?.name }}</td>
+                <td><button v-on:click="update(category)">Подкатегории</button></td>
+                <td><a :href="'/admin/items.html?category='+category.id"><button>Товары</button></a></td>
+                <td><a :href="'/admin/category-form.html#'+category.id"><button>Редактировать</button></a></td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+
+    <script>
+      let app = new Vue({
+        el: '#app',
+        data: {
+          categories: [],
+          previous: null
+        },
+        methods: {
+          update: function(parent) {
+            if (parent == null || parent.id === 0)
+            getCategories().then((val) => {
+                this.categories = val;
+                this.previous = null;
+              });
+            else
+              getCategoriesByParent(parent.id).then((val) => {
+                this.categories = val;
+                this.previous = parent;
+              });
+          },
+        }
+      });
+
+      getCategories().then((val) => {
+        app.categories = val;
+      });
+    </script>
+</body>
+</html>

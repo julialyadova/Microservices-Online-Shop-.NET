@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/lib/awsm.min.css">
+    <link rel="stylesheet" href="/admin/style.css">
+    <script src="/admin/scripts.js"></script>
+    <script src="/admin/lib/vue.js"></script>
+    <title>Админка</title>
+</head>
+<body>
+    <header>
+        <h1>Админ панель</h1><br>
+        <a href="/admin/items.html"><button>Управление товарами</button></a>
+        <a href="/admin/categories.html"><button>Управление категориями</button></a>
+    </header>
+
+    <div id="app" class="content">
+        <a href="/admin/item-form.html" class="right"><button>Добавить товар</button></a>
+        <br/>
+        <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>Ссылка на изображение</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="items">
+              <tr>
+                
+              </tr>
+              <tr v-for="item in items">
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td >{{ item.category?.name }}</td>
+                <td>{{ item.price }}</td>
+                <td><a v-if="item.imageURL != null" :href="item.imageURL">Посмотреть изображение</a></td>
+                <td><a :href="'/admin/item-form.html#'+item.id"><button>Редактировать</button></a></td>
+              </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+      let app = new Vue({
+        el: '#app',
+        data: {
+          items: []
+        }
+      });
+
+      let category = getParam("category");
+      if (category == null)
+        getItems().then((val) => {
+          app.items = val;
+        });
+      else
+        getItemsByCategory(category).then((val) => {
+          app.items = val;
+        });
+    </script>
+</body>
+</html>

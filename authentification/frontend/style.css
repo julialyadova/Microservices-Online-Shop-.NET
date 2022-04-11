@@ -1,0 +1,24 @@
+.content {
+    margin: 0 auto;
+    display: flex;
+    max-width: 500px;
+    word-break: break-all;
+}
+
+h1 {
+    margin: 0;
+    margin-bottom: 12px;
+}
+
+.error {
+    color: red;
+}
+
+.token {
+    color: rgb(137, 189, 47);
+}
+
+.decoded {
+    color:darkgoldenrod;
+}
+

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/lib/awsm.min.css">
+    <link rel="stylesheet" href="/admin/style.css">
+    <script src="/admin/scripts.js"></script>
+    <script src="/admin/lib/vue.js"></script>
+    <title>Админка</title>
+</head>
+<body>
+  <header>
+    <h1>Админ панель</h1><br>
+    <a href="/admin/items.html"><button>Управление товарами</button></a>
+    <a href="/admin/categories.html"><button>Управление категориями</button></a>
+  </header>
+
+    <div id="app"  class="content">
+        <form v-on:submit="submit" onreset="hideOutput()">
+            <h4 v-if="model.id == 0">Создание товара</h4>
+            <h4 v-if="model.id != 0">Редактирование товара</h4>
+
+            <input type="hidden" name="id" v-model="model.id">
+
+            <label for="name">Название</label>
+            <input id="name" name="name" type="text" v-model="model.name" required>
+
+            <label for="category">Категория</label>
+            <select id="category" name="category" v-model="model.category.id">
+              <option v-for="c in categories" v-bind:value="c.id">
+                {{ c.name }}
+              </option>
+            </select>
+
+            <label for="price">Цена</label>
+            <input id="price" name="price" type="number" min="0" step="any" v-model="model.price" required>
+            
+            <label for="imageURL">Ссылка на изображение</label>
+            <input id="imageURL" name="imageURL" type="text" v-model="model.imageURL">
+
+            <img :src="model.imageURL" height=200px>
+
+            <input type="submit" value="Сохранить">
+            <button v-on:click="del" v-if="model.id != 0">Удалить</button>
+          </form>
+    </div>
+
+    <script>
+      let app = new Vue({
+        el: '#app',
+        data: {
+          model: { id: 0, name:null, category: {id: 0}, price: 0, discount: 0, isAvailable: true, imageURL: null },
+          categories: []
+        },
+        methods: {
+          submit: function(event) {
+            event.preventDefault();
+            
+            let model = {
+              id: this.model.id,
+              name: this.model.name,
+              category: this.model.category = this.model.category != null ? {id: this.model.category.id} : null,
+              price: this.model.price,
+              discount: this.model.discount,
+              isAvailable: this.model.isAvailable,
+              imageURL: this.model.imageURL
+            }
+            console.log(model);
+
+            if (model.id == 0)
+              addItem(model).then((val) => window.location = "/admin/items.html");
+            else
+              updateItem(model).then((val) => window.location = "/admin/items.html");
+
+            return false;
+          },
+          del: function() {
+            deleteItem(this.model.id).then((val) => window.location = "/admin/items.html");
+          }
+        }
+      });
+
+      getCategories().then((val) => {
+        app.categories = val;
+      });
+
+      let id = parseInt(window.location.hash.substring(1), 10);
+            if (!isNaN(id)) 
+                getItem(id).then((val) => {
+                    app.model = val;
+                    if (val.category == null)
+                      app.model.category = {id: 0};
+                });
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/admin/lib/awsm.min.css">
+    <link rel="stylesheet" href="/admin/style.css">
+    <script src="/admin/lib/vue.js"></script>
+    <script src="/admin/scripts.js"></script>
+    <title>Админка</title>
+</head>
+<body>
+    <header>
+        <h1>Админ панель</h1><br>
+        <a href="/admin/items.html"><button>Управление товарами</button></a>
+        <a href="/admin/categories.html"><button>Управление категориями</button></a>
+    </header>
+
+    <div id="app"  class="content">
+        <form v-on:submit="submit" onreset="hideOutput()">
+            <h4 v-if="model.id == 0">Добавление категории</h4>
+            <h4 v-if="model.id != 0">Редактирование категории</h4>
+
+            <input type="hidden" name="id" v-model="model.id">
+
+            <label for="name">Название</label>
+            <input id="name" name="name" type="text" v-model="model.name" required>
+
+            <label for="parent">Родительская категория</label>
+            <select id="parent" name="parent" v-model="model.parent.id">
+              <option v-for="c in categories" v-bind:value="c.id">
+                {{ c.name }}
+              </option>
+            </select>
+
+            <p>{{error}}</p>
+            <input type="submit" value="Сохранить">
+            <button v-on:click="del" v-if="model.id != 0">Удалить</button>
+          </form>
+    </div>
+
+    <script>
+      let app = new Vue({
+        el: '#app',
+        data: {
+          model: { id: 0, name:null, parent: {id: 0} },
+          categories: [],
+          error: ""
+        },
+        methods: {
+          submit: function(event) {
+            event.preventDefault();
+            
+            let model = {
+              id: this.model.id,
+              name: this.model.name,
+              parent: this.model.parent != null ? {id: this.model.parent.id} : null
+            }
+            console.log(model);
+
+            if (model.id == 0)
+              addCategory(model).then((val)=>window.location = "/admin/categories.html");
+            else
+              updateCategory(model).then((val)=>window.location = "/admin/categories.html");
+
+            return false;
+          },
+          del: function() {
+            deleteCategory(this.model.id).then((val) => window.location = "/admin/categories.html");
+          }
+        }
+      });
+
+      getCategories().then((val) => {
+        app.categories = val;
+      }).catch((val)=>{
+        app.error = "invalid";
+      });
+
+      let id = parseInt(window.location.hash.substring(1), 10);
+            if (!isNaN(id)) 
+                getCategory(id).then((val) => {
+                    app.model = val;
+                    if (val.parent == null)
+                      app.model.parent = {id: 0};
+                });
+    </script>
+</body>
+</html>

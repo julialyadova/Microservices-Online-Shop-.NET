@@ -1,0 +1,150 @@
+version: '3.7'
+
+services:   
+# -------- RabbitMQ -------- # 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: shop
+      RABBITMQ_DEFAULT_PASS: s123456
+      RABBITMQ_DEFAULT_VHOST: /
+
+# -------- nginx + frontend -------- # 
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./admin-panel/frontend:/www/data/admin # admin pages #
+      - ./catalog/frontend:/www/data/catalog # catalog pages #
+      - ./authentification/frontend:/www/data/authentification # login and register pages #
+    ports:
+      - 80:80
+
+# -------- Authentification -------- # 
+
+  api-gateway:
+    build: 
+      context: ./authentification/APIGateway
+      dockerfile: ./Dockerfile
+    depends_on:
+      - users-db
+    volumes:
+      - ./authentification/APIGateway/appsettings.json:/app/appsettings.json
+      - ./authentification/APIGateway/ocelot.json:/app/ocelot.json
+    ports:
+      - 5000:80
+  
+  users-db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: hko921
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - users-db
+    ports:
+      - 8009:80
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: users-db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: hko921
+
+# -------- Admin -------- # 
+  admin-api:
+    build: 
+      context: ./admin-panel/api
+      dockerfile: ./Dockerfile
+    depends_on:
+      - admin-db
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: shop
+      RABBITMQ_PASSWORD: s123456
+    volumes:
+      - ./admin-panel/api/appsettings.json:/api/appsettings.json
+    ports:
+      - 8081:80
+    links:
+      - "admin-db:db"
+
+  admin-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: frog135
+      POSTGRES_USER: admin
+    ports:
+      - 5431:5432
+    volumes:
+      - ./admin-panel/db/data/:/var/lib/postgresql/data/
+
+# -------- Catalog -------- # 
+  catalog-api:
+    build: 
+      context: ./catalog/api
+      dockerfile: ./Dockerfile
+    depends_on:
+      - catalog-mongo
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://catalogapp:gift932@catalog-mongo:27017/test # mongodb://<user>:<passwd>@<host>:<port>/<DBname> #
+      MONGO_DATABASE: catalog
+      MONGO_COLLECTION: items
+    volumes:
+      - ./catalog/api/appsettings.json:/api/appsettings.json
+    ports:
+      - 8091:80
+
+  catalog-worker:
+    build: 
+      context: ./catalog/worker/CatalogWorker
+      dockerfile: ./Dockerfile
+    depends_on:
+      - catalog-mongo
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: shop
+      RABBITMQ_PASSWORD: s123456
+      MONGO_CONNECTION_STRING: mongodb://catalogapp:gift932@catalog-mongo:27017/test # mongodb://<user>:<passwd>@<host>:<port>/<DBname> #
+      MONGO_DATABASE: catalog
+      MONGO_COLLECTION: items
+    volumes:
+      - ./catalog/worker/appsettings.json:/CatalogWorker/appsettings.json
+    ports:
+      - 8095:80
+
+  catalog-mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: gift923
+    ports:
+      - 28017:27017
+    volumes:
+      - ./catalog/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js # здесь создается пользователь #
+
+  catalog-mongo-express:
+    image: mongo-express
+    restart: always
+    depends_on:
+      - catalog-mongo
+    ports:
+      - 8099:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: gift923
+      ME_CONFIG_MONGODB_URL: mongodb://root:gift923@catalog-mongo:27017/

@@ -1,0 +1,37 @@
+﻿{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "{catchAll}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-api",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "users_auth_scheme",
+        "AllowedScopes": []
+      },
+      "UpstreamPathTemplate": "/catalog{catchAll}",
+      "UpstreamHttpMethod": [ "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "{catchAll}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-api",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "users_auth_scheme",
+        "AllowedScopes": []
+      },
+      "UpstreamPathTemplate": "/admin{catchAll}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    }
+  ],
+  "GlobalConfiguration": { }
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/catalog/lib/awsm.min.css">
+    <link rel="stylesheet" href="/catalog/style.css">
+    <script src="/catalog/scripts.js"></script>
+    <script src="/catalog/lib/vue.js"></script>
+    <title>Каталог</title>
+</head>
+<body>
+    <div id="app" class="content">
+
+      <div class="menu">
+        <a v-if="category.parent != null" :href="'?category=' + category.parent">← назад</a>
+        <h1>{{category.name}}</h1><br>
+        <ul>
+          <li v-for="c in category.childCategories">
+            <a :href="'?category=' + c.id">{{c.name}}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="items">
+        <div class="item" v-for="item in category.items">
+            <img class="item__img" :src="item.imageURL">
+            <b class="item__name">{{item.name}}</b>
+            <div class="item__price">{{item.price}} ₽</div>
+        </div>
+      </div>
+
+    </div>
+    <script type="text/javascript">
+      let app = new Vue({
+        el: '#app',
+        data: {
+          category: {
+            id: 0,
+            parent: 0,
+            name: "...",
+            childCategories: [
+            ],
+            items: [
+            ]
+          }
+        }
+      });
+
+      let id = getParam("category");
+      if (id == null)
+        id = 0;
+      getItemsByCategory(id).then((val) => {
+        app.category = val;
+      });
+    </script>
+</body>
+</html>

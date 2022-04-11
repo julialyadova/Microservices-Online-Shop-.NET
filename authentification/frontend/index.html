@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/authentification/lib/awsm.min.css">
+    <link rel="stylesheet" href="/authentification/style.css">
+    <script src="/authentification/scripts.js"></script>
+    <script src="/authentification/lib/vue.js"></script>
+    <title>Вход</title>
+</head>
+<body>
+  <div id="app" class="content">
+    <form onsubmit="login(event)">
+      <h1>Войти</h1>
+      <input id="username" name="Username" type="text" placeholder="имя пользователя">
+      <input id="password" name="Password" type="password" placeholder="пароль">
+      <input type="submit" value="Войти"> <a href="/authentification/register.html">Зарегистрироваться</a>
+      <p class="error">{{error}}</p>
+      <p class="token">{{token}}</p>
+      <p class="decoded">{{decoded}}</p>
+    </form>
+  </div>
+
+  <script type="text/javascript">
+    let app = new Vue({
+      el: '#app',
+      data: {
+        error: "",
+        token: "",
+        decoded: ""
+      }
+    });
+
+    function login(e) {
+      e.preventDefault();
+
+      let loginModel = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value
+      } 
+      console.log(loginModel);
+
+      Login(loginModel).then((token) => {
+        console.log(token);
+        app.token = token;
+        app.decoded = parseJwt(token);
+        app.error = "";
+      }).catch((xhr) => {
+        console.log(xhr);
+        app.error = `${xhr.status}: ${xhr.response}`;
+        app.token = "";
+        app.decoded = "";
+      });
+    return false;
+  }
+  </script>
+</body>
+</html>

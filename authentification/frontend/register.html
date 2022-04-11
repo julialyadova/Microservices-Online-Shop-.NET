@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/authentification/lib/awsm.min.css">
+    <link rel="stylesheet" href="/authentification/style.css">
+    <script src="/authentification/scripts.js"></script>
+    <script src="/authentification/lib/vue.js"></script>
+    <title>Регистрация</title>
+</head>
+<body>
+  <div id="app" class="content">
+    <form onsubmit="register(event)">
+      <h1>Регистрация</h1>
+      <input id="username" name="Username" type="text" placeholder="имя пользователя">
+      <input id="password" name="Password" type="password" placeholder="пароль">
+      <input id="passwordConfirm" name="PasswordConfirm" type="password" placeholder="подтверждение пароля">
+      <input type="submit" value="Зарегистрироваться"> <a href="/authentification/index.html">Войти</a>
+      <p class="error">{{error}}</p>
+      <p class="token">{{token}}</p>
+    </form>
+  </div>
+
+  <script type="text/javascript">
+    let app = new Vue({
+      el: '#app',
+      data: {
+        error: "",
+        token: ""
+      }
+    });
+
+    function register(e) {
+      e.preventDefault();
+
+      let registerModel = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        passwordConfirm: document.getElementById("passwordConfirm").value
+      } 
+      console.log(registerModel);
+
+      Register(registerModel).then((token) => {
+        console.log(token);
+        app.token = token;
+        app.error = "";
+      }).catch((xhr) => {
+        console.log(xhr);
+        app.error = `${xhr.status}: ${xhr.response}`;
+        app.token = "";
+      });
+    return false;
+  }
+  </script>
+</body>
+</html>
